@@ -1,9 +1,15 @@
 import * as path from 'path';
 import { FastifyInstance } from 'fastify';
 import AutoLoad from '@fastify/autoload';
+import { IBroker } from '@freeshares/broker';
 
 /* eslint-disable-next-line */
-export interface AppOptions {}
+export interface AppOptions {
+  // config: {
+  //    brokerBaseUrl: string;
+  // }
+  // broker: IBroker
+}
 
 export async function app(fastify: FastifyInstance, opts: AppOptions) {
   // Place here your custom code!

@@ -8,13 +8,35 @@ export interface IBroker {
   // To check if the stock market is currently open or closed
   isMarketOpen(): Promise<{ open: boolean, nextOpeningTime: string, nextClosingTime: string }>
   // To purchase shares into a customer's account using Emma's funds
-  placeBuyOrderUsingEmmaFunds(accountId: string, tickerSymbol: string, quantity: number): Promise<{ orderId: string }>
+  placeBuyOrderUsingEmmaFunds(accountId: string, tickerSymbol: string, quantity: number): Promise<{ id: string }>
   // To view the shares that are purchased in the customer's account
   getAccountPositions(accountId: string): Promise<Array<{ tickerSymbol: string, quantity: number, sharePrice: number }>>
   // To view the orders of the customer's account. Returns the status of each order and what share price the order was executed at.
   getAllOrders(accountId: string): Promise<Array<{ id: string, tickerSymbol: string, quantity: number, side: 'buy'|'sell', status: 'open'|'filled'|'failed', filledPrice: number }>>
 }
 
+export type Position = {
+  tickerSymbol: string
+  quantity: number
+  sharePrice: number
+}
+
+export type Market = {
+  open: boolean
+  nextOpeningTime: string
+  nextClosingTime: string
+}
+
+export type Asset = { tickerSymbol: string }
+
+export type Order = {
+  id: string;
+  tickerSymbol: string;
+  quantity: number;
+  side: "buy" | "sell";
+  status: "open" | "filled" | "failed";
+  filledPrice: number
+}
 
 export class Broker implements IBroker {
 
@@ -23,38 +45,38 @@ export class Broker implements IBroker {
     private readonly http: AxiosInstance,
   ) { }
 
-  getAccountPositions(accountId: string): Promise<Array<{
-    tickerSymbol: string;
-    quantity: number;
-    sharePrice: number
-  }>> {
-    throw new Error('Method not implemented.')
+  async getAccountPositions(accountId: string): Promise<Array<Position>> {
+    const response = await this.http.get<Array<Position>>(`/accounts/${accountId}/positions`)
+
+    return response.data
   }
 
-  getAllOrders(accountId: string): Promise<Array<{
-    id: string;
-    tickerSymbol: string;
-    quantity: number;
-    side: "buy" | "sell";
-    status: "open" | "filled" | "failed";
-    filledPrice: number
-  }>> {
-    throw new Error('Method not implemented.')
+  async getAllOrders(accountId: string): Promise<Array<Order>> {
+    const response = await this.http.get<Array<Order>>(`accounts/${accountId}/orders`)
+    return response.data
   }
 
-  getLatestPrice(tickerSymbol: string): Promise<{ sharePrice: number }> {
-    throw new Error('Method not implemented.');
+  async getLatestPrice(tickerSymbol: string): Promise<{ sharePrice: number }> {
+    const response = await this.http.get(`/assets/${tickerSymbol}/price`)
+    return response.data
   }
 
-  isMarketOpen(): Promise<{ open: boolean; nextOpeningTime: string; nextClosingTime: string }> {
-    throw new Error('Method not implemented.');
+  async isMarketOpen(): Promise<Market> {
+    const response = await this.http.get<Market>('/market/status')
+    return response.data
   }
 
-  listTradableAssets(): Promise<Array<{ tickerSymbol: string }>> {
-    throw new Error('Method not implemented.');
+  async listTradableAssets(): Promise<Array<Asset>> {
+    const response = await this.http.get<Array<Asset>>('/assets')
+    return response.data
   }
 
-  placeBuyOrderUsingEmmaFunds(accountId: string, tickerSymbol: string, quantity: number): Promise<{ orderId: string }> {
-    throw new Error('Method not implemented.');
+  async placeBuyOrderUsingEmmaFunds(accountId: string, tickerSymbol: string, quantity: number): Promise<Pick<Order, 'id'>> {
+    const response = await this.http.post<Pick<Order, 'id'>>(`/accounts/${accountId}/orders`, {
+      tickerSymbol,
+      quantity,
+      side: 'buy'
+    })
+    return response.data
   }
 }
