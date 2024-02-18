@@ -14,6 +14,10 @@
     ],
     "sharedGlobals": []
   },
+  "workspaceLayout": {
+    "appsDir": "apps",
+    "libsDir": "libs"
+  },
   "targetDefaults": {
     "@nx/esbuild:esbuild": {
       "cache": true,
