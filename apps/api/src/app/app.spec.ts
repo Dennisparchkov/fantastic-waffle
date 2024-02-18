@@ -17,4 +17,13 @@ describe('GET /', () => {
 
     expect(response.json()).toEqual({ message: 'Hello API' });
   });
+
+  it('should respond with 404 when claiming freeshare', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/claim-free-share',
+    });
+
+    expect(response.statusCode).toEqual(404);
+  });
 });

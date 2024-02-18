@@ -5,7 +5,7 @@
   "scripts": {
     "test": "nx run-many --target=test --all --parallel",
     "lint": "nx run-many --target=lint --all --parallel",
-    "locally": "nx run-many --target=build --all && INPUT_BUILD_ARGS=\"NODE_VERSION=`cat .nvmrc`\" nx run-many --target=docker --all && yarn run docker-compose-up",
+    "locally": "nx run-many --target=build --all && nx run-many --target=docker-build --all && yarn run docker-compose-up",
     "docker-compose-up": "./docker-compose.sh up --detach --build"
   },
   "private": true,

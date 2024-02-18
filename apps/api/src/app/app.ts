@@ -24,12 +24,4 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     dir: path.join(__dirname, 'routes'),
     options: { ...opts },
   });
-
-  fastify.addHook("onRequest", async (request, reply) => {
-    try {
-      await request.jwtDecode()
-    } catch (err) {
-      reply.send(err)
-    }
-  })
 }

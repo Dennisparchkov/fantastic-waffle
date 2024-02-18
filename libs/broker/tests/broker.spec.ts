@@ -1,4 +1,4 @@
-import { broker } from './broker';
+import { broker } from '../src/lib/broker';
 
 describe('broker', () => {
   it('should work', () => {
