@@ -5,6 +5,7 @@
   "scripts": {
     "test": "nx run-many --target=test --all --parallel",
     "lint": "nx run-many --target=lint --all --parallel",
+    "build": "nx run-many --target=build --all --parallel",
     "locally": "nx run-many --target=build --all && nx run-many --target=docker-build --all && yarn run docker-compose-up",
     "docker-compose-up": "./docker-compose.sh up --detach --build"
   },
@@ -13,9 +14,14 @@
     "@fastify/autoload": "~5.7.1",
     "@fastify/sensible": "~5.2.0",
     "axios": "^1.6.7",
+    "env-var": "^7.4.1",
     "fastify": "~4.13.0",
     "fastify-plugin": "~4.5.0",
-    "tslib": "^2.3.0"
+    "ioredis": "^5.3.2",
+    "pg": "^8.11.3",
+    "tslib": "^2.3.0",
+    "typeorm": "^0.3.20",
+    "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
     "@nx/esbuild": "18.0.4",
@@ -31,6 +37,7 @@
     "@types/axios": "^0.14.0",
     "@types/jest": "^29.4.0",
     "@types/node": "~18.16.9",
+    "@types/pg": "^8.11.0",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "esbuild": "^0.19.2",

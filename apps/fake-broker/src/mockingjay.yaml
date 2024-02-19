@@ -1,0 +1,47 @@
+---
+- name: get assets
+  request:
+    uri: /assets
+    method: GET
+  response:
+    code: 200
+    body: '[{"tickerSymbol":"APPL"},{"tickerSymbol":"BBY"},{"tickerSymbol":"GME"}]'
+    headers:
+      content-type: application/json
+- name: get APPL price
+  request:
+    uri: /assets/APPL/price
+    method: GET
+  response:
+    code: 200
+    body: '{"sharePrice":150}'
+    headers:
+      content-type: application/json
+- name: get BBY price
+  request:
+    uri: /assets/BBY/price
+    method: GET
+  response:
+    code: 200
+    body: '{"sharePrice":20}'
+    headers:
+      content-type: application/json
+- name: get GME price
+  request:
+    uri: /assets/GME/price
+    method: GET
+  response:
+    code: 200
+    body: '{"sharePrice":5}'
+    headers:
+      content-type: application/json
+- name: place order
+  request:
+    uri: /accounts/1/orders
+    method: POST
+    body: '*'
+  response:
+    code: 200
+    body: '{"id":"1"}'
+    headers:
+        content-type: application/json

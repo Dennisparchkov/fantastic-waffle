@@ -39,8 +39,6 @@ export type Order = {
 }
 
 export class Broker implements IBroker {
-
-
   constructor(
     private readonly http: AxiosInstance,
   ) { }
@@ -56,8 +54,8 @@ export class Broker implements IBroker {
     return response.data
   }
 
-  async getLatestPrice(tickerSymbol: string): Promise<{ sharePrice: number }> {
-    const response = await this.http.get(`/assets/${tickerSymbol}/price`)
+  async getLatestPrice(tickerSymbol: string): Promise<Pick<Position, 'sharePrice'>> {
+    const response = await this.http.get<Pick<Position, 'sharePrice'>>(`/assets/${tickerSymbol}/price`)
     return response.data
   }
 

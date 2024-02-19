@@ -15,7 +15,11 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@freeshares/broker": ["libs/broker/src/index.ts"]
+      "@freeshares/allocation": ["libs/allocation/src/index.ts"],
+      "@freeshares/broker": ["libs/broker/src/index.ts"],
+      "@freeshares/distributed-lock": ["libs/distributed-lock/src/index.ts"],
+      "@freeshares/instrument": ["libs/instrument/src/index.ts"],
+      "@freeshares/user": ["libs/user/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

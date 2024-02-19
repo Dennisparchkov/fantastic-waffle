@@ -1,11 +1,55 @@
 version: '3.9'
 
+x-api-env-var: &api-env-var
+  BROKER_API_BASE_URL: 'http://fake-broker:8080'
+x-db-env-var: &db-env-var
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+x-redis-env-var: &redis-env-var
+  REDIS_HOST: 'redis'
+  REDIS_PASSWORD: 'redis_password'
+  REDIS_PORT: 6379
+
 services:
   api:
     container_name: api
     image: api
+    environment:
+      <<: [*db-env-var, *redis-env-var, *api-env-var]
     ports:
       - "3000:3000"
+    links: [ postgres:postgres ]
+    depends_on:
+      - postgres
+      - redis
+  fake-broker:
+    container_name: "fake-broker"
+    image: fake-broker
+    ports:
+      - "8080:8080"
+    platform: 'linux/amd64'
+  postgres:
+    image: postgres:14.4
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - PGDATA=/var/lib/postgresql/data:rw
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./scripts/db_setup.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data:rw
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass redis_password
+    volumes:
+      - redis:/data
 volumes:
   pgdata:
+    driver: local
   tmp:
+  redis:

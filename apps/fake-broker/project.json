@@ -1,0 +1,12 @@
+{
+    "name": "fake-broker",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/fake-broker/src",
+    "projectType": "application",
+    "targets": {
+        "docker-build": {
+          "command": "docker build -f apps/fake-broker/Dockerfile . -t fake-broker"
+        }
+    },
+    "tags": []
+}

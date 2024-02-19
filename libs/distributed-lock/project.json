@@ -1,0 +1,8 @@
+{
+  "name": "distributed-lock",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/distributed-lock/src",
+  "projectType": "library",
+  "targets": {},
+  "tags": []
+}

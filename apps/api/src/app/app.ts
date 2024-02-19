@@ -1,18 +1,22 @@
 import * as path from 'path';
+import 'pg';
 import { FastifyInstance } from 'fastify';
 import AutoLoad from '@fastify/autoload';
-import { IBroker } from '@freeshares/broker';
+import { getDatabaseSource } from './dataSource';
+import { config } from './config';
+import { IDistributedLock } from '@freeshares/distributed-lock';
+import { IAllocation, IFreeshareAllocationService } from '@freeshares/allocation';
+import { Repository } from 'typeorm';
+import { User } from '@freeshares/user';
 
 /* eslint-disable-next-line */
 export interface AppOptions {
-  // config: {
-  //    brokerBaseUrl: string;
-  // }
-  // broker: IBroker
+  distributedLock: IDistributedLock
+  freeshareAllocationService: IFreeshareAllocationService
 }
 
 export async function app(fastify: FastifyInstance, opts: AppOptions) {
-  // Place here your custom code!
+  // Load dependencies
 
   // Do not touch the following lines
 
