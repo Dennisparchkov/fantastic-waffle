@@ -18,6 +18,20 @@ Some things to improve On:
 * Write e2e tests to test in docker
 * Setup a logger like pino for production.
 
+## Organisation
+
+* `apps/api` - The main API for the freeshares service (Fastify)
+* `apps/faker-broker` - A fake broker that simulates a broker that can handle buy and sell orders for a stock. It is a simple REST API that can be used to simulate a broker. Used in e2e tests and when run locally
+* `libs` - Contains the shared libraries for the apps
+  * `libs/allocation` - Contains the allocation logic for the freeshares service 
+  * `libs/broker` - Contains the broker client for the freeshares service 
+  * `libs/distributed-lock` - Contains the distributed lock implemenration using redis used in the api 
+  * `libs/instrument` - Contains logic of chosing a random instrument within a given price range for freeshares 
+  * `libs/user` - Contains the user repo.
+
+We use TypeORM for our repository classes and database interaction.
+NX is used as a repo manager, this allows us to easily manage the monorepo and run commands across the different apps and libs. 
+Run `yarn nx graph` to see the dependency graph of the repo as a glance and what libs/apps are affected by changes.
 
 ## Assumptions
 
@@ -28,6 +42,7 @@ Some things to improve On:
 * We use mockingJay to mock the broker in docker (using docker dns)
 * Redis is used to maintain distributed locks so we make sure each client can only be in the process of claiming a 1 freeshare at a time. 
 * We fetch the live prices and availale instruments from the broker for each freeshare redemption, but this can be cached locally (redis or postgres) for improved performance.
+
 ### CPA Allocation 
 
 Cost Per Aquisition (CPA) allocation is controler via the `FREESHARE_USE_CPA` env var.
