@@ -35,6 +35,15 @@
     body: '{"sharePrice":5}'
     headers:
       content-type: application/json
+- name: get order
+  request:
+    uri: /orders/1
+    method: GET
+  response:
+    code: 200
+    body: '{"status":"filled","filledPrice": 5.5}'
+    headers:
+      content-type: application/json
 - name: place order
   request:
     uri: /accounts/1/orders

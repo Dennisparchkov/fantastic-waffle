@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 
-import { ALLOCATION_TYPE_PRICES, IAllocation } from '@freeshares/allocation';
+import { IAllocation } from '@freeshares/allocation';
 import { Account, FreeShareStatus, User } from '@freeshares/user';
 import { FreeshareAllocation, FreeshareAllocationStatus } from './repository/entities/freeshare-allocation';
 import { IInstrumentService } from '@freeshares/instrument';
@@ -45,7 +45,8 @@ export class FreeshareAllocationService implements IFreeshareAllocationService {
     private readonly accountRepo: Repository<Account>,
     private readonly freeshareAllocationRepo: Repository<FreeshareAllocation>,
     private readonly instrumentService: IInstrumentService,
-    private readonly broker: IBroker
+    private readonly broker: IBroker,
+    private readonly useCPAAllocation: boolean
   ) { }
 
   async allocateFreeshare(userId: string): Promise<FreeshareAllocationResponse> {
@@ -58,21 +59,42 @@ export class FreeshareAllocationService implements IFreeshareAllocationService {
       }
     }
 
-    const allocationType = this.allocation.generateAllocation()
-    const freeshareInstrument = await this.instrumentService.getRandomInstrumentInPriceRange(
-      ALLOCATION_TYPE_PRICES[allocationType].min,
-      ALLOCATION_TYPE_PRICES[allocationType].max
-    )
+    let freeshareInstrumentTicker: string | undefined
+    if (!context.freeshareAllocation) {
+      const allocationPrice = await this.getPriceAllocation()
+      const freeshareInstrument = await this.instrumentService.getRandomInstrumentInPriceRange(
+        allocationPrice.min,
+        allocationPrice.max
+      )
 
-    await this.storeFreeshareAllocationPendingBuy(userId, freeshareInstrument.isin)
-    const orderId = await this.buyFreeshare(userId, freeshareInstrument.isin)
-    await this.updateFreeshareAllocationAfterPurchase(userId, orderId)
+      await this.storeFreeshareAllocationPendingBuy(userId, freeshareInstrument.isin)
+      freeshareInstrumentTicker = freeshareInstrument.isin
+    } else {
+      freeshareInstrumentTicker = context.freeshareAllocation.instrumentTicker
+    }
+
+    const order = await this.buyFreeshare(context.account.id, freeshareInstrumentTicker)
+    await this.updateFreeshareAllocationAfterPurchase(userId, order.id, order.cost)
 
     return {
       success: true,
-      orderId,
-      instrumentTicker: freeshareInstrument.isin
+      orderId: order.id,
+      instrumentTicker: freeshareInstrumentTicker
     }
+  }
+
+  private async getPriceAllocation(): Promise<{ min: number, max: number }> {
+    if (this.useCPAAllocation) {
+      const totalAllocatedFreeshares = await this.freeshareAllocationRepo.find({
+        where: {
+          status: FreeshareAllocationStatus.COMPLETE
+        }
+      })
+
+      return this.allocation.generateCPAllocation(totalAllocatedFreeshares)
+    }
+
+    return this.allocation.generateAllocation()
   }
 
   private async fetchContext(userId: string): Promise<FreeshareAllocationContext> {
@@ -135,23 +157,33 @@ export class FreeshareAllocationService implements IFreeshareAllocationService {
   }
 
 
-  private async buyFreeshare(userId: string, instrumentId: string): Promise<string> {
+  private async buyFreeshare(accountId: string, instrumentId: string): Promise<{id: string, cost?: number}> {
     const quantity = 1
     try {
-      const buyOrder = await this.broker.placeBuyOrderUsingEmmaFunds(userId, instrumentId, quantity)
-      return buyOrder.id
+      const buyOrder = await this.broker.placeBuyOrderUsingEmmaFunds(accountId, instrumentId, quantity)
+      const order = await this.broker.getOrder(buyOrder.id)
+      if (order.status === 'filled') {
+        return {
+          id: buyOrder.id,
+          cost: order.filledPrice
+        }
+      }
+
+      return { id: buyOrder.id }
     } catch (e) {
-      return FreeshareAllocationFailureReason.FAILED_BUY
+      console.error('error buying freeshare', e)
+      throw new Error(FreeshareAllocationFailureReason.FAILED_BUY)
     }
   }
 
-  private async updateFreeshareAllocationAfterPurchase(userId: string, orderId: string): Promise<void> {
+  private async updateFreeshareAllocationAfterPurchase(userId: string, orderId: string, cost: number): Promise<void> {
     await this.freeshareAllocationRepo.manager.transaction(async (transaction) => {
       await transaction.update<FreeshareAllocation>(FreeshareAllocation, {
         userId
       }, {
         orderId,
-        status: FreeshareAllocationStatus.COMPLETE
+        status: FreeshareAllocationStatus.COMPLETE,
+        cost
       })
       await transaction.update<User>(User, {
         id: userId

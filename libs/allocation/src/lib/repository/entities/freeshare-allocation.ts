@@ -27,4 +27,24 @@ export class FreeshareAllocation {
 
   @Column({ type: 'varchar', enum: FreeshareAllocationStatus, default: FreeshareAllocationStatus.PENDING_BUY })
   status: FreeshareAllocationStatus
+
+  // This will be used for the cost per acquisition model
+  @Column({ type: 'decimal', nullable: true })
+  cost: number
+
+  constructor(
+    id: string,
+    userId: string,
+    instrumentTicker: string,
+    orderId: string,
+    status: FreeshareAllocationStatus,
+    cost: number
+  ) {
+    this.id = id
+    this.userId = userId
+    this.instrumentTicker = instrumentTicker
+    this.orderId = orderId
+    this.status = status
+    this.cost = cost
+  }
 }

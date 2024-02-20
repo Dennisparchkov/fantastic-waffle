@@ -1,34 +1,67 @@
-import { Allocation, ALLOCATION_TYPE_PRICES, AllocationType } from './allocation';
+import { Allocation } from './allocation';
+import { FreeshareAllocation, FreeshareAllocationStatus } from '@freeshares/allocation';
 
 describe('generateAllocation', () => {
 
-  const simpleAllocation = new Allocation();
+  const minPrice = 3;
+  const maxPrice = 200;
+  const targetCPA = 10;
 
-  it.each`
-  random  | expectedAllocationType
-  ${0}    | ${AllocationType.A}
-  ${0.1}  | ${AllocationType.A}
-  ${0.5}  | ${AllocationType.A}
-  ${0.94} | ${AllocationType.A}
-  ${0.95} | ${AllocationType.A}
-  ${0.96} | ${AllocationType.B}
-  ${0.97} | ${AllocationType.B}
-  ${0.98} | ${AllocationType.B}
-  ${0.99} | ${AllocationType.C}
-  ${1}    | ${AllocationType.C}
-  `('should return allocation type $expectedAllocationType if random number generates $random', ({ random, expectedAllocationType }) => {
-    jest.spyOn(global.Math, 'random').mockReturnValue(random);
+  const simpleAllocation = new Allocation(targetCPA, minPrice, maxPrice);
 
-    const response = simpleAllocation.generateAllocation();
-    expect(response).toEqual(expectedAllocationType);
-  });
+  const expectedLowPrice = {
+    min: minPrice,
+    max: 10,
+  }
+  const expectedMidPrice = {
+    min: 11,
+    max: 25,
+  }
+  const expectedHighPrice =  {
+    min: 26,
+    max: 200,
+  }
 
+  describe('generateAllocation', () => {
 
-  describe('ALLOCATION_TYPE_PRICES', () => {
-    it('should return correct price range for each allocation type', () => {
-      expect(ALLOCATION_TYPE_PRICES[AllocationType.A]).toEqual({ min: 3, max: 10 });
-      expect(ALLOCATION_TYPE_PRICES[AllocationType.B]).toEqual({ min: 11, max: 25 });
-      expect(ALLOCATION_TYPE_PRICES[AllocationType.C]).toEqual({ min: 26, max: 200 });
+    it.each`
+  random  | expectedPrice
+  ${0}    | ${expectedLowPrice}
+  ${0.1}  | ${expectedLowPrice}
+  ${0.5}  | ${expectedLowPrice}
+  ${0.94} | ${expectedLowPrice}
+  ${0.95} | ${expectedLowPrice}
+  ${0.96} | ${expectedMidPrice}
+  ${0.97} | ${expectedMidPrice}
+  ${0.98} | ${expectedMidPrice}
+  ${0.99} | ${expectedHighPrice}
+  ${1}    | ${expectedHighPrice}
+  `('should return allocation type $expectedPrice if random number generates $random', ({ random, expectedPrice }) => {
+      jest.spyOn(global.Math, 'random').mockReturnValue(random);
+
+      const response = simpleAllocation.generateAllocation();
+      expect(response).toEqual(expectedPrice);
     });
   })
+
+  describe('generateCPAllocation', () => {
+    it('should return min and target CPA if existing CPA is less than target CPA', () => {
+      const allocatedFreeshares = [
+        new FreeshareAllocation('1', '1', 'AAPL', '1', FreeshareAllocationStatus.COMPLETE, 10),
+        new FreeshareAllocation('2', '2', 'GME', '1', FreeshareAllocationStatus.COMPLETE, 20)
+      ]
+      const response = simpleAllocation.generateCPAllocation(allocatedFreeshares);
+      expect(response).toEqual({ min: minPrice, max: targetCPA });
+    })
+
+    it('should return target CPA and max if existing CPA is greater than target CPA', () => {
+      const allocatedFreeshares = [
+        new FreeshareAllocation('1', '1', 'AAPL', '1', FreeshareAllocationStatus.COMPLETE, 1),
+        new FreeshareAllocation('2', '2', 'GME', '1', FreeshareAllocationStatus.COMPLETE, 2)
+      ]
+      const response = simpleAllocation.generateCPAllocation(allocatedFreeshares);
+      expect(response).toEqual({ min: targetCPA, max: maxPrice });
+    })
+  })
+
 });

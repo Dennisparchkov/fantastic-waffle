@@ -6,7 +6,7 @@ import Redis from 'ioredis';
 import { config } from './app/config';
 import { Allocation, FreeshareAllocation, FreeshareAllocationService } from '@freeshares/allocation';
 import { getDatabaseSource } from './app/dataSource';
-import { User } from '@freeshares/user';
+import { Account } from '@freeshares/user';
 import { Broker } from '@freeshares/broker';
 import { InstrumentService } from '@freeshares/instrument';
 
@@ -35,11 +35,12 @@ server.register(async () => {
   const broker = new Broker(axiosInstance)
   const instrumentService = new InstrumentService(broker)
   const freeshareAllocationService = new FreeshareAllocationService(
-    new Allocation(),
-    db.getRepository(User),
+    new Allocation(config.freeshare.targetCPA, config.freeshare.minPrice, config.freeshare.maxPrice),
+    db.getRepository(Account),
     db.getRepository(FreeshareAllocation),
     instrumentService,
-    broker
+    broker,
+    config.freeshare.useCPAAllocation
   )
 
   return app(server, {

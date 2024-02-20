@@ -13,6 +13,7 @@ export interface IBroker {
   getAccountPositions(accountId: string): Promise<Array<{ tickerSymbol: string, quantity: number, sharePrice: number }>>
   // To view the orders of the customer's account. Returns the status of each order and what share price the order was executed at.
   getAllOrders(accountId: string): Promise<Array<{ id: string, tickerSymbol: string, quantity: number, side: 'buy'|'sell', status: 'open'|'filled'|'failed', filledPrice: number }>>
+  getOrder(orderId: string): Promise<{ id: string, tickerSymbol: string, quantity: number, side: 'buy'|'sell', status: 'open'|'filled'|'failed', filledPrice: number }>
 }
 
 export type Position = {
@@ -51,6 +52,11 @@ export class Broker implements IBroker {
 
   async getAllOrders(accountId: string): Promise<Array<Order>> {
     const response = await this.http.get<Array<Order>>(`accounts/${accountId}/orders`)
+    return response.data
+  }
+
+  async getOrder(orderId: string): Promise<Order> {
+    const response = await this.http.get<Order>(`orders/${orderId}`)
     return response.data
   }
 
